@@ -21,6 +21,7 @@
 </template>
 <script>
 export default {
+    name: 'Register',
     data() {
         return {
             input: {

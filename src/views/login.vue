@@ -5,6 +5,9 @@
         <input type="password" name="password" v-model="input.password" placeholder="Password" />
         <button type="button" v-on:click="login()">Login</button>
     </div>
+    <div>
+      <button type="button" v-on:click="register()">register</button>
+    </div>
 </template>
 
 <script>
@@ -20,6 +23,9 @@ import axios from 'axios'
             }
         },
         methods: {
+            register(){
+              this.$router.replace({ name: "Todos" });
+            }
             login() {
                 if ("" == this.input.username || "" == this.input.password) {
                     console.log("A username and password must be present");
