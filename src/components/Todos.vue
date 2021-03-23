@@ -1,12 +1,10 @@
 <template>
     <section class="todoapp">
         <header class="header">            
-            <h1>Todolist</h1>
-            <input type="text" class="new-todo-list" placeholder="Ajouter une une todo list" v-bind:value="todoListName" v-on:input="todoListName = $event.target.value" @keyup.enter="addTodoList"> <!-- ajout d'un listener d'evenement ainsi que du modele virtuel -->
+            <h1>Todos</h1>
+            <input type="text" class="new-todo" placeholder="Ajouter une tache" v-bind:value="todoName" v-on:input="todoName = $event.target.value" @keyup.enter="addTodo"> <!-- ajout d'un listener d'evenement ainsi que du modele virtuel -->
         </header>
         <body>            
-            <h2>Todos</h2>
-            <input type="text" class="new-todo" placeholder="Ajouter une tache" v-bind:value="todoName" v-on:input="todoName = $event.target.value" @keyup.enter="addTodo"> <!-- ajout d'un listener d'evenement ainsi que du modele virtuel -->
             <div class="main">
                 <input type="checkbox" v-model="allDone">
                 <ul class="todo-list">
@@ -16,7 +14,7 @@
                             <label @dblclick="editTodo(todo)">{{ todo.name }}</label> <!-- lance la methode editTodo lors d'un evenement double clique -->
                             <button class="destroy" @click.prevent="deleteTodo(todo)"></button>
                         </div>
-                        <input type="text" class="edit" v-model="todo.name" @keyup.enter="doneEdit" @blur="doneEdit" @keyup.esc="cancelEdit" v-focus="todo === editing">
+                        <input type="text" class="edit" v-model="todo.name" @keyup.enter="doneEdit(todo)" @blur="doneEdit" @keyup.esc="cancelEdit" v-focus="todo === editing">
                     </li>
                 </ul>
             </div>
@@ -42,7 +40,19 @@ import axios from 'axios'
         props: {
             value: {type: Array, default () {return []} }
         },
-
+    
+        mounted () {
+            axios.post(
+                "http://138.68.74.39/api/todolist?name=todolist",
+                {},
+                {
+                    headers: {
+                            Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')
+                        }
+                    }
+                )
+            .then(result => (this.todoListId = result.data.id)) //Save in API
+        },
         //Type des entrées stockées, avec leurs infos
         data () {
             return {
@@ -63,39 +73,26 @@ import axios from 'axios'
         },
         methods: {
             //methode d'ajout d'une entrée (todo)
-            addTodoList () {
-                axios.post(
-                    "http://138.68.74.39/api/todolist?name=" + this.todoListName,
-                    {},
-                    {
-                        headers: {
-                                Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')
-                            }
-                        }
-                    )
-                .then(this.todoListId = function (response) {
-                    return response.data.id
-                }) //Save in API
-            },
             addTodoAPI () {
                 //appel axiom pour ajouter le todos a l'api
                 axios.post(
-                    "http://138.68.74.39/api/todo?name=" + this.todoName + "&completed=" + false + "&todolist_id=" + this.todoListId,
+                    "http://138.68.74.39/api/todo?name=" + this.todoName + "&completed=0&todolist_id=" + this.todoListId,
                     {},
                     {
                         headers: {
                             Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')
                         }
                     }
-                )
-                .then() //Save in API
+                ).then(result => (
+                    this.todos.push({
+                        completed: false,
+                        name: result.data.name,
+                        id: result.data.id
+                    }))
+                ) //Save in API
             },
             addTodo () {
-                this.addTodoAPI()
-                this.todos.push({
-                    completed: false,
-                    name: this.todoName
-                })
+                this.addTodoAPI();
                 this.todoName = ''
             },
             //methode supprimant d'une entrée (todo)
@@ -107,7 +104,7 @@ import axios from 'axios'
             deleteTodoAPI (todo) {
                 console.log(localStorage.getItem('tokenBearer'))
                 axios.delete(
-                    "http://138.68.74.39/api/todo/1",
+                    "http://138.68.74.39/api/todo/" + todo['id'],
                     {
                         headers: {
                             Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')
@@ -116,14 +113,21 @@ import axios from 'axios'
                 ).then()  //ecriture dans l'api             
             },
             //methode de vérification par rapport à la liste de données (todo)
-            deleteCompleted (todo) {
+            deleteCompleted () {
                 this.todos = this.todos.filter(todo => !todo.completed)
                 this.$emit('input' , this.todos)
-                this.deleteTodo()
-                this.deleteTodoAPI()
+                this.todos.forEach((value, index) => {
+                    this.deleteTodo(value)
+                })
             },
-            editTodoAPI() {
-                axios.patch("http://138.68.74.39/api/completeTodo/1?name=" + this.todos.name , {} , {headers: { Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')}} ).then()  //ecriture dans l'api
+            editTodoAPI(todo) {
+                axios.patch("http://138.68.74.39/api/todo/" + todo['id'] + "?name=" + todo['name'], {},
+                    {
+                        headers: {
+                            Authorization: 'Bearer ' + localStorage.getItem('tokenBearer')
+                        }
+                    }
+                ).then() 
             },
             //methode d'edition  d'une entrée (todo)
             editTodo (todo) {
@@ -131,14 +135,14 @@ import axios from 'axios'
                 this.oldTodo = todo.name
             },
             //methode de complétion d'edition, annulant le state de editing (todo)
-            doneEdit () {
+            doneEdit (todo) {
+                this.editTodoAPI(todo)
                 this.editing = null
-                
             },
             //methode pareil que doneEdit, mais on remet l'ancien todo (todo)
             cancelEdit () {
                 this.editing.name = this.oldTodo
-                this.doneEdit()
+                this.editing = null
             }
         },
         //propriétées computed; des données réactives, notamment pour le compte des taches 
