@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Todos from '@/components/Todos'
 import Login from '@/views/login'
-import Register from '@views/register'
+import Register from '@/views/register'
 
 Vue.use(Router)
 

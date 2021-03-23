@@ -1,13 +1,15 @@
 <template>
-    <div id="login">
-        <h1>Login</h1>
-        <input type="text" name="username" v-model="input.username" placeholder="Username" />
-        <input type="password" name="password" v-model="input.password" placeholder="Password" />
-        <button type="button" v-on:click="login()">Login</button>
+    <body>
+            <h1 class="loginh1">Login</h1>
+            <div id="login">
+            <input type="text" class="new-todo" name="username" v-model="input.username" placeholder="Username" />
+            <input type="password" class="new-todo" name="password" v-model="input.password" placeholder="Password" />
+            <ul>
+                <li><button type="button" v-on:click="login()">Login</button></li>
+                <li><button type="button" v-on:click="register()">register</button></li>
+            </ul>
     </div>
-    <div>
-      <button type="button" v-on:click="register()">register</button>
-    </div>
+    </body>
 </template>
 
 <script>
@@ -17,15 +19,15 @@ import axios from 'axios'
         data() {
             return {
                 input: {
-                    username: "toto@toto.com",
-                    password: "totototo"
+                    username: "Email",
+                    password: "Mdp"
                 }
             }
         },
         methods: {
             register(){
-              this.$router.replace({ name: "Todos" });
-            }
+              this.$router.replace({ name: "register" });
+            },
             login() {
                 if ("" == this.input.username || "" == this.input.password) {
                     console.log("A username and password must be present");

@@ -1,25 +1,29 @@
 
 <template>
-  <div id="register">
-    <h1>Register</h1>
-    <form @submit.prevent="login">
-      <div>
-        <label for="username">username</label>
-        <input name="username" v-model="input.username" placeholder="username">
+  <body>
+      <div id="register" class="register">
+        <h1 class="loginh1">Register</h1>
+        <form @submit.prevent="login" id="form" >
+          <div>
+            <label for="username">username</label>
+            <input name="username" v-model="input.username" placeholder="username">
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input name="email" type="email" v-model="input.email" placeholder="Adresse électronique">
+          </div>
+          <div>
+            <label for="password">password</label>
+            <input name="password" v-model="input.password" placeholder="password" type="password">
+          </div>
+          <button type="button" v-on:click="register()">register</button>
+        </form>
       </div>
-      <div>
-        <label for="email">Email</label>
-        <input name="email" type="email" v-model="input.email" placeholder="Adresse électronique">
-      </div>
-      <div>
-        <label for="password">password</label>
-        <input name="password" v-model="input.password" placeholder="password" type="password">
-      </div>
-      <input type="submit" value="register">
-    </form>
-  </div>
+  </body>
 </template>
+
 <script>
+import axios from 'axios'
 export default {
     name: 'Register',
     data() {
@@ -44,6 +48,8 @@ export default {
         .then(function (response) {
                 if (200 != response.status) {
                     return;
+                }else if (409 == response.status) {
+                    console.log("Erreur, email ou nom déjà prit");
                 }
 
                 localStorage.setItem("tokenBearer", response.data.token)
@@ -53,5 +59,7 @@ export default {
         this.$router.replace({ name: "login" });
     }
   }
-};
+  }
+}
+
 </script>
